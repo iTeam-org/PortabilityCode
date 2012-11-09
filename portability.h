@@ -26,6 +26,13 @@
     #include <sys/time.h>
 #endif
 
+int portability_system_call(const char* cmd);
+void portability_clear_buffer( FILE* f);
+void portability_change_terminal_mode( int dir);
+int portability_kbhit();
+unsigned int portability_sleep(unsigned int time);
+void portability_gotoligcol(int poslig, int poscol);
+
 int portability_system_call(const char* cmd)
 {
     char* command = (char*) malloc(sizeof(char) * (strlen(cmd) + 1));
