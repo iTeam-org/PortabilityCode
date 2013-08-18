@@ -56,6 +56,15 @@
     #include <sys/time.h>
 #endif
 
+// Couleurs
+
+#define COLOR_BLACK 30
+#define COLOR_RED 31
+#define COLOR_GREEN 32
+#define COLOR_BLUE 34
+#define COLOR_GRAY 37
+
+
 // Prototypes des fonctions portables
 
 /*! Remplace les appels systèmes windows courants par leurs correspondances
@@ -83,7 +92,13 @@ int portability_kbhit();
  *  \param time Temps en millisecondes 
  *  \ret -1 si erreur, 0 sinon
  */
-int portability_sleep(unsigned int time);
+unsigned int portability_sleep(unsigned int time);
+
+/*! Change la couleur du texte ou du fond
+ * \param color la couleur
+ */
+void portability_background_color(unsigned int color);
+void portability_text_color(unsigned int color);
 
 /*! Déplace le curseur dans la console
  * À noter que le repère est de la forme:
@@ -242,6 +257,49 @@ void portability_gotoligcol(int poslig, int poscol)
     #else
         printf("%c[%d;%df", 0x1B, poslig, poscol);
     #endif
+}
+
+
+void
+portability_text_color(unsigned int color)
+{
+#ifdef _WIN32
+        HANDLE console;
+
+        console = GetStdHandle(STD_OUTPUT_HANDLE);
+        if(color == COLOR_RED)
+                color = FOREGROUND_RED;
+        if(color == COLOR_BLUE)
+                color = FOREGROUND_BLUE;
+        if(color == COLOR_GREEN)
+                color = FOREGROUND_GREEN;
+        if(color == COLOR_GRAY)
+                color = FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
+        SetConsoleTextAttribute(hConsole, color);
+#else
+        printf("\033[0;#%im", color);
+#endif
+}
+
+void
+portability_background_color(unsigned int color)
+{
+#ifdef _WIN32
+        HANDLE console;
+
+        console = GetStdHandle(STD_OUTPUT_HANDLE);
+        if(color == COLOR_RED)
+                color = BACKGROUND_RED;
+        if(color == COLOR_BLUE)
+                color = BACKGROUND_BLUE;
+        if(color == COLOR_GREEN)
+                color = BACKGROUND_GREEN;
+        if(color == COLOR_GRAY)
+                color = BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
+        SetConsoleTextAttribute(hConsole, color);
+#else
+        printf("\033[7;%im",color);
+#endif
 }
 
 #endif // PORTABILITY_H_INCLUDED
