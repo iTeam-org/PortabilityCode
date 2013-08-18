@@ -14,7 +14,7 @@ int main()
     }
 
     printf("\n\n\n=> %c", getchar());
-    change_text_color(COLOR_RED);
+    portability_text_color(COLOR_RED);
     printf("Red-------------\n");
     return 0;
 }

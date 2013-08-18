@@ -275,7 +275,7 @@ portability_text_color(unsigned int color)
                 color = FOREGROUND_GREEN;
         if(color == COLOR_GRAY)
                 color = FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
-        SetConsoleTextAttribute(hConsole, color);
+        SetConsoleTextAttribute(console, color);
 #else
         printf("\033[0;#%im", color);
 #endif
@@ -296,7 +296,7 @@ portability_background_color(unsigned int color)
                 color = BACKGROUND_GREEN;
         if(color == COLOR_GRAY)
                 color = BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
-        SetConsoleTextAttribute(hConsole, color);
+        SetConsoleTextAttribute(console, color);
 #else
         printf("\033[7;%im",color);
 #endif
