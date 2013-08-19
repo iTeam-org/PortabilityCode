@@ -277,7 +277,7 @@ portability_text_color(unsigned int color)
                 color = FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
         SetConsoleTextAttribute(console, color);
 #else
-        printf("\033[0;#%im", color);
+        printf("\033[0;%im", color);
 #endif
 }
 

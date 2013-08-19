@@ -4,18 +4,14 @@
 
 int main()
 {
-    int i = 0;
-    while (!kbhit())
-    {
-        printf("Temps: %d secondes\n", i);
-        gotoligcol(0,0);
-        i++;
-        Sleep(1000);
-    }
-
-    printf("\n\n\n=> %c", getchar());
     portability_text_color(COLOR_RED);
     printf("Red-------------\n");
+    portability_text_color(COLOR_BLUE);
+    printf("Blue-------------\n");
+    portability_text_color(COLOR_GREEN);
+    printf("Green-------------\n");
+    portability_text_color(COLOR_GRAY);
+    printf("Gray-------------\n");
     return 0;
 }
 
