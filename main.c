@@ -10,6 +10,8 @@ int main()
     printf("Blue-------------\n");
     portability_background_color(COLOR_GREEN);
     printf("Green-------------\n");
+    portability_background_color(COLOR_BLACK);
+    printf("BLACK-------------\n");
     portability_background_color(COLOR_GRAY);
     printf("Gray-------------\n");
 
@@ -17,10 +19,13 @@ int main()
     printf("Red-------------\n");
     portability_text_color(COLOR_BLUE);
     printf("Blue-------------\n");
+    portability_background_color(COLOR_DEFAULT);
     portability_text_color(COLOR_GREEN);
     printf("Green-------------\n");
     portability_text_color(COLOR_GRAY);
     printf("Gray-------------\n");
+    portability_text_color(COLOR_BLACK);
+    printf("BLACK-------------\n");
     return 0;
 }
 
