@@ -57,13 +57,15 @@
 #endif
 
 // Couleurs
+#define COLOR_DEFAULT 0
+#define COLOR_BLACK   30
+#define COLOR_RED     31
+#define COLOR_GREEN   32
+#define COLOR_BLUE    34
+#define COLOR_GRAY    37
 
-#define COLOR_BLACK 30
-#define COLOR_RED 31
-#define COLOR_GREEN 32
-#define COLOR_BLUE 34
-#define COLOR_GRAY 37
-
+static unsigned int _portability_color_bg = COLOR_DEFAULT;
+static unsigned int _portability_color_fg = COLOR_DEFAULT;
 
 // Prototypes des fonctions portables
 
@@ -260,46 +262,66 @@ void portability_gotoligcol(int poslig, int poscol)
 }
 
 
-void
-portability_text_color(unsigned int color)
+static void
+_portability_color_apply()
 {
+
 #ifdef _WIN32
         HANDLE console;
+        unsigned int color;
 
+        color = 0;
         console = GetStdHandle(STD_OUTPUT_HANDLE);
-        if(color == COLOR_RED)
-                color = FOREGROUND_RED;
-        if(color == COLOR_BLUE)
-                color = FOREGROUND_BLUE;
-        if(color == COLOR_GREEN)
-                color = FOREGROUND_GREEN;
-        if(color == COLOR_GRAY)
-                color = FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
+
+        if(_portability_color_fg == COLOR_RED)
+                color |= FOREGROUND_RED;
+        if(_portability_color_fg == COLOR_BLUE)
+                color |= FOREGROUND_BLUE;
+        if(_portability_color_fg = COLOR_GREEN)
+                color |= FOREGROUND_GREEN;
+        if(_portability_color_fg == COLOR_GRAY)
+                color |= FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
+
+        if(_portability_color_fg == COLOR_RED)
+                color |= BACKGROUND_RED;
+        if(_portability_color_fg == COLOR_BLUE)
+                color |= BACKGROUND_BLUE;
+        if(_portability_color_fg == COLOR_GREEN)
+                color |= BACKGROUND_GREEN;
+        if(_portability_color_fg == COLOR_GRAY)
+                color |= BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
+        //if(_portability_color_fg == COLOR_BLACK)
+        //        color |= BACKGROUND_BLACK;
+
         SetConsoleTextAttribute(console, color);
 #else
-        printf("\033[0;%im", color);
+
+        printf("\033[0m");
+
+        if(_portability_color_bg != COLOR_DEFAULT &&
+           _portability_color_fg != COLOR_DEFAULT)
+          printf("\033[0;%i;%im", _portability_color_fg,
+                 _portability_color_bg + 10);
+        else if(_portability_color_bg != COLOR_DEFAULT)
+          printf("\033[7;%im", _portability_color_bg);
+        else if(_portability_color_fg != COLOR_DEFAULT)
+          printf("\033[0;%im", _portability_color_fg);
+
 #endif
 }
 
 void
 portability_background_color(unsigned int color)
 {
-#ifdef _WIN32
-        HANDLE console;
+        _portability_color_bg = color ;
+        _portability_color_apply();
+}
 
-        console = GetStdHandle(STD_OUTPUT_HANDLE);
-        if(color == COLOR_RED)
-                color = BACKGROUND_RED;
-        if(color == COLOR_BLUE)
-                color = BACKGROUND_BLUE;
-        if(color == COLOR_GREEN)
-                color = BACKGROUND_GREEN;
-        if(color == COLOR_GRAY)
-                color = BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
-        SetConsoleTextAttribute(console, color);
-#else
-        printf("\033[7;%im",color);
-#endif
+void
+portability_text_color(unsigned int color)
+{
+        _portability_color_fg = color ;
+        _portability_color_apply();
 }
 
 #endif // PORTABILITY_H_INCLUDED
