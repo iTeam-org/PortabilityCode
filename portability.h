@@ -277,20 +277,20 @@ _portability_color_apply()
                 color |= FOREGROUND_RED;
         if(_portability_color_fg == COLOR_BLUE)
                 color |= FOREGROUND_BLUE;
-        if(_portability_color_fg = COLOR_GREEN)
+        if(_portability_color_fg == COLOR_GREEN)
                 color |= FOREGROUND_GREEN;
         if(_portability_color_fg == COLOR_GRAY)
                 color |= FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
 
-        if(_portability_color_fg == COLOR_RED)
+        if(_portability_color_bg == COLOR_RED)
                 color |= BACKGROUND_RED;
-        if(_portability_color_fg == COLOR_BLUE)
+        if(_portability_color_bg == COLOR_BLUE)
                 color |= BACKGROUND_BLUE;
-        if(_portability_color_fg == COLOR_GREEN)
+        if(_portability_color_bg == COLOR_GREEN)
                 color |= BACKGROUND_GREEN;
-        if(_portability_color_fg == COLOR_GRAY)
+        if(_portability_color_bg == COLOR_GRAY)
                 color |= BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
-        //if(_portability_color_fg == COLOR_BLACK)
+        //if(_portability_color_bg == COLOR_BLACK)
         //        color |= BACKGROUND_BLACK;
 
         SetConsoleTextAttribute(console, color);
