@@ -46,6 +46,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#define  _XOPEN_SOURCE_EXTENDED 1
+#include <strings.h>
+
 #ifdef _WIN32	// Si l'on est sous Windows
     #include <conio.h>
     #include <windows.h>
@@ -57,15 +60,19 @@
 #endif
 
 // Couleurs
-#define COLOR_DEFAULT 0
-#define COLOR_BLACK   30
-#define COLOR_RED     31
-#define COLOR_GREEN   32
-#define COLOR_BLUE    34
-#define COLOR_GRAY    37
+typedef enum
+{
+   COLOR_DEFAULT = 0,
+   COLOR_BLACK   = 30,
+   COLOR_RED     = 31,
+   COLOR_GREEN   = 32,
+   COLOR_YELLOW  = 33,
+   COLOR_BLUE    = 34,
+   COLOR_MAGENTA = 35,
+   COLOR_CYAN    = 36,
+   COLOR_GRAY    = 37
+} Color;
 
-static unsigned int _portability_color_bg = COLOR_DEFAULT;
-static unsigned int _portability_color_fg = COLOR_DEFAULT;
 
 // Prototypes des fonctions portables
 
@@ -124,204 +131,14 @@ void portability_gotoligcol(int poslig, int poscol);
  *  À noter que ces macros remplacent les appels non-portables AVANT la 
  *  compilation du code.
  */
-#define gotoligcol(x, y) portability_gotoligcol(x, y)
-#define kbhit() portability_kbhit()
-#define Sleep(time) portability_sleep(time)
-#define system(arg) portability_system_call(arg)
-#define fflush(arg) portability_clear_buffer(arg)
 
-// Intercepte les appels systèmes et remplace les commandes non-portables
-int portability_system_call(const char* cmd)
-{
-
-    // ****** DECLARACTION DES VARIABLES ******
-
-    // Enregistre la longueur de la commande
-    int cmd_len = strlen(cmd);
-
-    // Déclare une chaîne de l'exacte taille de cmd
-    char* command = (char*) malloc(sizeof(char) * (cmd_len + 1));
-
-    // Itérateur
-    int i;
-
-    // Valeur de retour de la fonction system
-    int ret = 1;
-
-    // ****** PREPARATION DE LA COMMANDE ******
-
-    // Passage de la commande en majuscule 
-    //	Car Windows est insensible à la casse contrairement à Linux/Mac
-    for (i = 0 ; i < cmd_len ; i++)
-        command[i] = toupper(cmd[i]);
-
-    // Ajout du caractère de fin de chaîne
-    command[cmd_len] = '\0';
-
-    // ****** TRAITEMENT DE LA COMMANDE  ******
-
-    if (strcmp(command, "PAUSE") == 0)		// Si on veut faire une pause
-    {
-        printf("Press any key to continue...");
-        getchar();  // Attend la saisie d'un caractère
-    }
-    else if (strcmp(command, "CLS") == 0)
-    {
-        #ifdef _WIN32	    // Si on est sous Windows
-            ret = system("cls");
-        #else		    // Si on est sous Linux/Mac
-            ret = system("clear");
-        #endif
-    }
-    else
-    {
-	// Si ce n'est pas une commande gérée, on la transmet tel quel
-        ret = system(cmd);  
-    }
-
-    // On libère l'espace mémoire pris par la commande
-    free(command);
-
-    // On retourne les éventuelles valeurs de retour de system
-    return ret;
-}
-
-// Libère le buffer d'entrée notamment (pour éviter les bugs sur les scanf)
-void portability_clear_buffer(FILE* f)
-{
-    // Itérateur
-    char c;
-
-    // Si on veux vider le buffer d'entrée
-    if (f == stdin)
-    {
-	// Boucle vidant le buffer caractère par caractère
-        while( (c=getchar()) != '\n' && c != EOF) ;
-    }
-    else    // Si on veux vraiment flush un flux de sortie
-    {
-        fflush(f);
-    }
-}
-
-void portability_change_terminal_mode(int dir)
-{
-    static struct termios old_term, new_term;
-
-    if (dir == 1)
-    {
-        tcgetattr( STDIN_FILENO, &old_term);
-        new_term = old_term;
-        new_term.c_lflag &= ~( ICANON | ECHO );
-        tcsetattr( STDIN_FILENO, TCSANOW, &new_term );
-    }
-    else
-    {
-        tcsetattr( STDIN_FILENO, TCSANOW, &old_term);
-    }
-}
-
-int portability_kbhit()
-{
-
-    #ifdef _WIN32
-        kbhit();
-    #else
-        portability_change_terminal_mode(1);
-        struct timeval tv = {0, 0};
-        fd_set rdfs;
-
-        FD_ZERO(&rdfs);
-        FD_SET( STDIN_FILENO, &rdfs);
-
-        return select(STDIN_FILENO + 1, &rdfs, NULL, NULL, &tv) == 1;
-        //return FD_ISSET(STDIN_FILENO, &rdfs);
-    #endif
-}
-
-unsigned int portability_sleep(unsigned int time)
-{
-    #ifdef _WIN32
-        Sleep(time);
-        return 0;
-    #else
-        return usleep(time * 1000);
-    #endif
-}
-
-void portability_gotoligcol(int poslig, int poscol)
-{
-    #ifdef _WIN32
-        COORD mycoord;
-        mycoord.X = poscol;
-        mycoord.Y = poslig;
-        SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), mycoord );
-    #else
-        printf("%c[%d;%df", 0x1B, poslig, poscol);
-    #endif
-}
+/* FIXME This is madness! Before code means when you call system, it will loop */
+/*#define gotoligcol(x, y) portability_gotoligcol(x, y)*/
+//#define kbhit() portability_kbhit()
+//#define Sleep(time) portability_sleep(time)
+//#define system(arg) portability_system_call(arg)
+//#define fflush(arg) portability_clear_buffer(arg)
 
 
-static void
-_portability_color_apply()
-{
-
-#ifdef _WIN32
-        HANDLE console;
-        unsigned int color;
-
-        color = 0;
-        console = GetStdHandle(STD_OUTPUT_HANDLE);
-
-        if(_portability_color_fg == COLOR_RED)
-                color |= FOREGROUND_RED;
-        if(_portability_color_fg == COLOR_BLUE)
-                color |= FOREGROUND_BLUE;
-        if(_portability_color_fg == COLOR_GREEN)
-                color |= FOREGROUND_GREEN;
-        if(_portability_color_fg == COLOR_GRAY)
-                color |= FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
-
-        if(_portability_color_bg == COLOR_RED)
-                color |= BACKGROUND_RED;
-        if(_portability_color_bg == COLOR_BLUE)
-                color |= BACKGROUND_BLUE;
-        if(_portability_color_bg == COLOR_GREEN)
-                color |= BACKGROUND_GREEN;
-        if(_portability_color_bg == COLOR_GRAY)
-                color |= BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
-        //if(_portability_color_bg == COLOR_BLACK)
-        //        color |= BACKGROUND_BLACK;
-
-        SetConsoleTextAttribute(console, color);
-#else
-
-        printf("\033[0m");
-
-        if(_portability_color_bg != COLOR_DEFAULT &&
-           _portability_color_fg != COLOR_DEFAULT)
-          printf("\033[0;%i;%im", _portability_color_fg,
-                 _portability_color_bg + 10);
-        else if(_portability_color_bg != COLOR_DEFAULT)
-          printf("\033[7;%im", _portability_color_bg);
-        else if(_portability_color_fg != COLOR_DEFAULT)
-          printf("\033[0;%im", _portability_color_fg);
-
-#endif
-}
-
-void
-portability_background_color(unsigned int color)
-{
-        _portability_color_bg = color ;
-        _portability_color_apply();
-}
-
-void
-portability_text_color(unsigned int color)
-{
-        _portability_color_fg = color ;
-        _portability_color_apply();
-}
 
 #endif // PORTABILITY_H_INCLUDED
