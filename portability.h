@@ -134,13 +134,14 @@ void portability_gotoligcol(int poslig, int poscol);
  *  À noter que ces macros remplacent les appels non-portables AVANT la 
  *  compilation du code.
  */
-
 #define gotoligcol(x, y) portability_gotoligcol(x, y)
 #define kbhit() portability_kbhit()
-#define Sleep(time) portability_sleep(time)
+#define sleep(time) portability_sleep(time)
 #define system(arg) portability_system_call(arg)
 #define fflush(arg) portability_clear_buffer(arg)
-
-
+#ifdef _WIN32
+// http://msdn.microsoft.com/en-us/library/e0z9k731(v=vs.90).aspx
+# define strcasecmp(a, b) _stricmp(a, b)
+#endif
 
 #endif // PORTABILITY_H_INCLUDED

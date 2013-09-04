@@ -1,5 +1,16 @@
 #include "portability.h"
 
+/* Since this is the implementation of wrappers, we must disable the 'aliases'
+ * absolutely. Else, we will call them recursively */
+#undef gotoligcol
+#undef kbhit
+#undef sleep
+#undef system
+#undef fflush
+#ifdef _WIN32
+# undef strcasecmp
+#endif
+
 
 static unsigned int _portability_color_bg = COLOR_DEFAULT;
 static unsigned int _portability_color_fg = COLOR_DEFAULT;
