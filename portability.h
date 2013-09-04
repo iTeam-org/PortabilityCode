@@ -89,8 +89,11 @@ void portability_clear_buffer( FILE* f);
 
 /*! Change le mode de fonctionnement du terminal (utile pour kbhit)
  *  \param dir Correspond à On/Off (1/0) pour le mode du terminal
+ *  UNIQUEMENT SOUS LINUX
  */
+#ifndef _WIN32
 void portability_change_terminal_mode( int dir);
+#endif
 
 /*! Détecte qu'une touche a été tapée dans le terminal
  *  \ret 0 si aucune touche frappée, > 0 sinon

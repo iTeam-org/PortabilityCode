@@ -53,6 +53,8 @@ portability_clear_buffer(FILE* f)
     }
 }
 
+#ifndef _WIN32
+
 void portability_change_terminal_mode(int dir)
 {
     static struct termios old_term, new_term;
@@ -69,6 +71,8 @@ void portability_change_terminal_mode(int dir)
         tcsetattr( STDIN_FILENO, TCSANOW, &old_term);
     }
 }
+
+#endif
 
 int portability_kbhit()
 {
