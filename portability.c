@@ -7,6 +7,8 @@ static unsigned int _portability_color_fg = COLOR_DEFAULT;
 int
 portability_system_call(const char *cmd)
 {
+#undef system
+
    int ret = -1;
 
    if (!cmd) return -1;
@@ -30,7 +32,7 @@ portability_system_call(const char *cmd)
         // Si ce n'est pas une commande gérée, on la transmet tel quel
         ret = system(cmd);
      }
-
+#define system(arg) portability_system_call(arg)
    return ret;
 }
 

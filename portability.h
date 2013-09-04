@@ -135,12 +135,11 @@ void portability_gotoligcol(int poslig, int poscol);
  *  compilation du code.
  */
 
-/* FIXME This is madness! Before code means when you call system, it will loop */
-/*#define gotoligcol(x, y) portability_gotoligcol(x, y)*/
-//#define kbhit() portability_kbhit()
-//#define Sleep(time) portability_sleep(time)
-//#define system(arg) portability_system_call(arg)
-//#define fflush(arg) portability_clear_buffer(arg)
+#define gotoligcol(x, y) portability_gotoligcol(x, y)
+#define kbhit() portability_kbhit()
+#define Sleep(time) portability_sleep(time)
+#define system(arg) portability_system_call(arg)
+#define fflush(arg) portability_clear_buffer(arg)
 
 
 
