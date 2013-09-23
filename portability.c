@@ -7,13 +7,24 @@
 #undef sleep
 #undef system
 #undef fflush
-#ifdef _WIN32
-# undef strcasecmp
-#endif
-
 
 static unsigned int _portability_color_bg = COLOR_DEFAULT;
 static unsigned int _portability_color_fg = COLOR_DEFAULT;
+
+void
+portability_init(void)
+{
+   /* Disable line buferring of provided file descriptors */
+   FILE *files[] = {
+      stderr,
+      stdout,
+      NULL // Sentinel - DO NOT REMOVE!
+   }, *f, **fi = files;
+
+   /* Okay, there is easier, but it's way cooler this way! */
+   while ((f = *(fi++)))
+     setbuf(f, NULL);
+}
 
 int
 portability_system_call(const char *cmd)
@@ -22,25 +33,25 @@ portability_system_call(const char *cmd)
 
    if (!cmd) return -1;
 
-   if (strcasecmp(cmd, "pause") == 0)		// Si on veut faire une pause
+   if (strcasecmp(cmd, "pause") == 0)
      {
         printf("Press any key to continue...");
-        ret = getchar();  // Attend la saisie d'un caractère
+        ret = getchar();
      }
-   else if ((strcasecmp(cmd, "cls") == 0) ||
+   else if ((strcasecmp(cmd, "CLS") == 0) ||
             (strcmp(cmd, "clear") == 0))
      {
-#ifdef _WIN32	    // Si on est sous Windows
-        ret = system("cls");
-#else		    // Si on est sous Linux/Mac
+#ifdef _WIN32
+        ret = system("CLS");
+#else
         ret = system("clear");
 #endif
      }
    else
      {
-        // Si ce n'est pas une commande gérée, on la transmet tel quel
         ret = system(cmd);
      }
+
    return ret;
 }
 
@@ -49,24 +60,24 @@ portability_clear_buffer(FILE* f)
 {
     char c;
 
-    if (!f) return;
-
-    // Si on veux vider le buffer d'entrée
+    // Si on veut vider le buffer d'entrée
     if (f == stdin)
     {
 	// Boucle vidant le buffer caractère par caractère
         while( (c=getchar()) != '\n' && c != EOF) ;
     }
-    else    // Si on veux vraiment flush un flux de sortie
+    else    // Si on veut vraiment flush un flux de sortie
     {
         fflush(f);
     }
 }
 
-#ifndef _WIN32
 
+/* I would advsise to put this as a static private function since
+ * no one is going to use this, I guess */
 void portability_change_terminal_mode(int dir)
 {
+#ifndef _WIN32
     static struct termios old_term, new_term;
 
     if (dir == 1)
@@ -80,38 +91,41 @@ void portability_change_terminal_mode(int dir)
     {
         tcsetattr( STDIN_FILENO, TCSANOW, &old_term);
     }
+#else
+    (void) dir; // To avoid warning with -Wunused-parameter
+#endif
 }
 
-#endif
 
-int portability_kbhit()
+int
+portability_kbhit(void)
 {
    int val;
-    #ifdef _WIN32
-        val = kbhit();
-    #else
-        portability_change_terminal_mode(1);
-        struct timeval tv = {0, 0};
-        fd_set rdfs;
+#ifdef _WIN32
+   val = kbhit();
+#else
+   portability_change_terminal_mode(1);
+   struct timeval tv = {0, 0};
+   fd_set rdfs;
 
-        FD_ZERO(&rdfs);
-        FD_SET( STDIN_FILENO, &rdfs);
+   FD_ZERO(&rdfs);
+   FD_SET( STDIN_FILENO, &rdfs);
 
-        val = select(STDIN_FILENO + 1, &rdfs, NULL, NULL, &tv) == 1;
-        //return FD_ISSET(STDIN_FILENO, &rdfs);
-    #endif
+   val = select(STDIN_FILENO + 1, &rdfs, NULL, NULL, &tv) == 1;
+   //return FD_ISSET(STDIN_FILENO, &rdfs);
+#endif
 
-        return val;
+   return val;
 }
 
-unsigned int portability_sleep(unsigned int time)
+void
+portability_sleep(unsigned int time)
 {
-    #ifdef _WIN32
-        Sleep(time);
-        return 0;
-    #else
-        return usleep(time * 1000);
-    #endif
+#ifdef _WIN32
+   Sleep(time);
+#else
+   usleep(time * 1000.0);
+#endif
 }
 
 void portability_gotoligcol(int poslig, int poscol)
@@ -123,6 +137,7 @@ void portability_gotoligcol(int poslig, int poscol)
         SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), mycoord );
     #else
         printf("%c[%d;%df", 0x1B, poslig, poscol); // How about line buferring here?!
+        // -> use portability_init() which disables line buffering of common fds
     #endif
 }
 
@@ -132,60 +147,60 @@ _portability_color_apply()
 {
 
 #ifdef _WIN32
-        HANDLE console;
-        unsigned int color;
+   HANDLE console;
+   unsigned int color;
 
-        color = 0;
-        console = GetStdHandle(STD_OUTPUT_HANDLE);
+   color = 0;
+   console = GetStdHandle(STD_OUTPUT_HANDLE);
 
-        if(_portability_color_fg == COLOR_RED)
-                color |= FOREGROUND_RED;
-        if(_portability_color_fg == COLOR_BLUE)
-                color |= FOREGROUND_BLUE;
-        if(_portability_color_fg == COLOR_GREEN)
-                color |= FOREGROUND_GREEN;
-        if(_portability_color_fg == COLOR_GRAY)
-                color |= FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
+   if(_portability_color_fg == COLOR_RED)
+     color |= FOREGROUND_RED;
+   if(_portability_color_fg == COLOR_BLUE)
+     color |= FOREGROUND_BLUE;
+   if(_portability_color_fg == COLOR_GREEN)
+     color |= FOREGROUND_GREEN;
+   if(_portability_color_fg == COLOR_GRAY)
+     color |= FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE;
 
-        if(_portability_color_bg == COLOR_RED)
-                color |= BACKGROUND_RED;
-        if(_portability_color_bg == COLOR_BLUE)
-                color |= BACKGROUND_BLUE;
-        if(_portability_color_bg == COLOR_GREEN)
-                color |= BACKGROUND_GREEN;
-        if(_portability_color_bg == COLOR_GRAY)
-                color |= BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
-        //if(_portability_color_bg == COLOR_BLACK)
-        //        color |= BACKGROUND_BLACK;
+   if(_portability_color_bg == COLOR_RED)
+     color |= BACKGROUND_RED;
+   if(_portability_color_bg == COLOR_BLUE)
+     color |= BACKGROUND_BLUE;
+   if(_portability_color_bg == COLOR_GREEN)
+     color |= BACKGROUND_GREEN;
+   if(_portability_color_bg == COLOR_GRAY)
+     color |= BACKGROUND_RED|BACKGROUND_GREEN|BACKGROUND_BLUE;
+   //if(_portability_color_bg == COLOR_BLACK)
+   //        color |= BACKGROUND_BLACK;
 
-        SetConsoleTextAttribute(console, color);
+   SetConsoleTextAttribute(console, color);
 #else
 
-        printf("\033[0m");
-
-        if(_portability_color_bg != COLOR_DEFAULT &&
-           _portability_color_fg != COLOR_DEFAULT)
-          printf("\033[0;%i;%im", _portability_color_fg,
-                 _portability_color_bg + 10);
-        else if(_portability_color_bg != COLOR_DEFAULT)
-          printf("\033[7;%im", _portability_color_bg);
-        else if(_portability_color_fg != COLOR_DEFAULT)
-          printf("\033[0;%im", _portability_color_fg);
+   if(_portability_color_bg != COLOR_DEFAULT &&
+      _portability_color_fg != COLOR_DEFAULT)
+     printf("\033[0;%i;%im", _portability_color_fg,
+            _portability_color_bg + 10);
+   else if(_portability_color_bg != COLOR_DEFAULT)
+     printf("\033[0;%im", _portability_color_bg + 10);
+   else if(_portability_color_fg != COLOR_DEFAULT)
+     printf("\033[0;%im", _portability_color_fg);
+   else
+     printf("\033[0;m");
 
 #endif
 }
 
 void
-portability_background_color(unsigned int color)
+portability_background_color_set(Color color)
 {
-        _portability_color_bg = color ;
-        _portability_color_apply();
+   _portability_color_bg = color ;
+   _portability_color_apply();
 }
 
 void
-portability_text_color(unsigned int color)
+portability_text_color_set(Color color)
 {
-        _portability_color_fg = color ;
-        _portability_color_apply();
+   _portability_color_fg = color ;
+   _portability_color_apply();
 }
 

@@ -8,44 +8,73 @@ _system_call_test(const char *arg)
 {
    int val;
 
+   printf("=========== SYSTEM CALL TEST ============\n");
    if (arg == NULL)
      {
-        ERR("NULL argument");
+        ERR("NULL argument provided!");
         return;
      }
    val = portability_system_call(arg);
-   printf("%s: %i\n", __func__, val);
+   printf("\n%s errno: %i\n", __func__, val);
+   printf("=========================================\n\n");
 }
 
-int main(int argc, char **argv)
+static void
+_printf_test(void)
 {
+   printf("\n============ PRINTF LINE BUFFERED TEST ===========\n");
+   printf("This is a printf test for line bufferring");
+   printf("And another test");
+   printf("If everything is on the same line, it's fine");
+   printf("\n==================================================\n\n");
+}
+
+static void
+_color_test_col(Color color, const char *text, int bg)
+{
+   void (*func)(Color color) =
+      (bg) ? portability_background_color_set : portability_text_color_set;
+
+   func(color);
+   printf("%s", text);
+   func(COLOR_DEFAULT);
+   printf("\n");
+}
+
+static void
+_color_test(void)
+{
+   printf("\n============ COLOR TEST ===========\n");
+
+   _color_test_col(COLOR_BLACK,   "BLACK---BG", 1);
+   _color_test_col(COLOR_RED,     "RED-----BG", 1);
+   _color_test_col(COLOR_GREEN,   "GREEN---BG", 1);
+   _color_test_col(COLOR_YELLOW,  "YELLOW--BG", 1);
+   _color_test_col(COLOR_BLUE,    "BLUE----BG", 1);
+   _color_test_col(COLOR_MAGENTA, "MAGENTA-BG", 1);
+   _color_test_col(COLOR_CYAN,    "CYAN----BG", 1);
+   _color_test_col(COLOR_GRAY,    "GRAY----BG", 1);
+
+   _color_test_col(COLOR_BLACK,   "BLACK---FG", 0);
+   _color_test_col(COLOR_RED,     "RED-----FG", 0);
+   _color_test_col(COLOR_GREEN,   "GREEN---FG", 0);
+   _color_test_col(COLOR_YELLOW,  "YELLOW--FG", 0);
+   _color_test_col(COLOR_BLUE,    "BLUE----FG", 0);
+   _color_test_col(COLOR_MAGENTA, "MAGENTA-FG", 0);
+   _color_test_col(COLOR_CYAN,    "CYAN----FG", 0);
+   _color_test_col(COLOR_GRAY,    "GRAY----FG", 0);
+
+   printf("===================================\n\n");
+}
+
+int
+main(int argc, char **argv)
+{
+   portability_init();
+
    _system_call_test(argc >= 2 ? argv[1] : NULL);
-
-   portability_background_color(COLOR_RED);
-   printf("Red-------------\n");
-   portability_background_color(COLOR_BLUE);
-   printf("Blue-------------\n");
-   portability_background_color(COLOR_GREEN);
-   printf("Green-------------\n");
-   portability_background_color(COLOR_BLACK);
-   printf("BLACK-------------\n");
-   portability_background_color(COLOR_GRAY);
-   printf("Gray-------------\n");
-
-   portability_text_color(COLOR_RED);
-   printf("Red-------------\n");
-   portability_text_color(COLOR_BLUE);
-   printf("Blue-------------\n");
-   portability_background_color(COLOR_DEFAULT);
-   portability_text_color(COLOR_GREEN);
-   printf("Green-------------\n");
-   portability_text_color(COLOR_GRAY);
-   printf("Gray-------------\n");
-   portability_text_color(COLOR_BLACK);
-   printf("BLACK-------------\n");
-
-
-
+   _printf_test();
+   _color_test();
 
    return 0;
 }
