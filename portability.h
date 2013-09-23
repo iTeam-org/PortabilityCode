@@ -46,6 +46,9 @@
 #include <string.h>
 #include <ctype.h>
 
+#define  _XOPEN_SOURCE_EXTENDED 1
+#include <strings.h>
+
 #ifdef _WIN32	// Si l'on est sous Windows
     #include <conio.h>
     #include <windows.h>
@@ -55,6 +58,21 @@
     #include <sys/types.h>
     #include <sys/time.h>
 #endif
+
+// Couleurs
+typedef enum
+{
+   COLOR_DEFAULT = 0,
+   COLOR_BLACK   = 30,
+   COLOR_RED     = 31,
+   COLOR_GREEN   = 32,
+   COLOR_YELLOW  = 33,
+   COLOR_BLUE    = 34,
+   COLOR_MAGENTA = 35,
+   COLOR_CYAN    = 36,
+   COLOR_GRAY    = 37
+} Color;
+
 
 // Prototypes des fonctions portables
 
@@ -71,8 +89,11 @@ void portability_clear_buffer( FILE* f);
 
 /*! Change le mode de fonctionnement du terminal (utile pour kbhit)
  *  \param dir Correspond à On/Off (1/0) pour le mode du terminal
+ *  UNIQUEMENT SOUS LINUX
  */
+#ifndef _WIN32
 void portability_change_terminal_mode( int dir);
+#endif
 
 /*! Détecte qu'une touche a été tapée dans le terminal
  *  \ret 0 si aucune touche frappée, > 0 sinon
@@ -83,7 +104,13 @@ int portability_kbhit();
  *  \param time Temps en millisecondes 
  *  \ret -1 si erreur, 0 sinon
  */
-int portability_sleep(unsigned int time);
+unsigned int portability_sleep(unsigned int time);
+
+/*! Change la couleur du texte ou du fond
+ * \param color la couleur
+ */
+void portability_background_color(unsigned int color);
+void portability_text_color(unsigned int color);
 
 /*! Déplace le curseur dans la console
  * À noter que le repère est de la forme:
@@ -109,139 +136,12 @@ void portability_gotoligcol(int poslig, int poscol);
  */
 #define gotoligcol(x, y) portability_gotoligcol(x, y)
 #define kbhit() portability_kbhit()
-#define Sleep(time) portability_sleep(time)
+#define sleep(time) portability_sleep(time)
 #define system(arg) portability_system_call(arg)
 #define fflush(arg) portability_clear_buffer(arg)
-
-// Intercepte les appels systèmes et remplace les commandes non-portables
-int portability_system_call(const char* cmd)
-{
-
-    // ****** DECLARACTION DES VARIABLES ******
-
-    // Enregistre la longueur de la commande
-    int cmd_len = strlen(cmd);
-
-    // Déclare une chaîne de l'exacte taille de cmd
-    char* command = (char*) malloc(sizeof(char) * (cmd_len + 1));
-
-    // Itérateur
-    int i;
-
-    // Valeur de retour de la fonction system
-    int ret = 1;
-
-    // ****** PREPARATION DE LA COMMANDE ******
-
-    // Passage de la commande en majuscule 
-    //	Car Windows est insensible à la casse contrairement à Linux/Mac
-    for (i = 0 ; i < cmd_len ; i++)
-        command[i] = toupper(cmd[i]);
-
-    // Ajout du caractère de fin de chaîne
-    command[cmd_len] = '\0';
-
-    // ****** TRAITEMENT DE LA COMMANDE  ******
-
-    if (strcmp(command, "PAUSE") == 0)		// Si on veut faire une pause
-    {
-        printf("Press any key to continue...");
-        getchar();  // Attend la saisie d'un caractère
-    }
-    else if (strcmp(command, "CLS") == 0)
-    {
-        #ifdef _WIN32	    // Si on est sous Windows
-            ret = system("cls");
-        #else		    // Si on est sous Linux/Mac
-            ret = system("clear");
-        #endif
-    }
-    else
-    {
-	// Si ce n'est pas une commande gérée, on la transmet tel quel
-        ret = system(cmd);  
-    }
-
-    // On libère l'espace mémoire pris par la commande
-    free(command);
-
-    // On retourne les éventuelles valeurs de retour de system
-    return ret;
-}
-
-// Libère le buffer d'entrée notamment (pour éviter les bugs sur les scanf)
-void portability_clear_buffer(FILE* f)
-{
-    // Itérateur
-    char c;
-
-    // Si on veux vider le buffer d'entrée
-    if (f == stdin)
-    {
-	// Boucle vidant le buffer caractère par caractère
-        while( (c=getchar()) != '\n' && c != EOF) ;
-    }
-    else    // Si on veux vraiment flush un flux de sortie
-    {
-        fflush(f);
-    }
-}
-
-void portability_change_terminal_mode(int dir)
-{
-    static struct termios old_term, new_term;
-
-    if (dir == 1)
-    {
-        tcgetattr( STDIN_FILENO, &old_term);
-        new_term = old_term;
-        new_term.c_lflag &= ~( ICANON | ECHO );
-        tcsetattr( STDIN_FILENO, TCSANOW, &new_term );
-    }
-    else
-    {
-        tcsetattr( STDIN_FILENO, TCSANOW, &old_term);
-    }
-}
-
-int portability_kbhit()
-{
-
-    #ifdef _WIN32
-        kbhit();
-    #else
-        portability_change_terminal_mode(1);
-        struct timeval tv = {0, 0};
-        fd_set rdfs;
-
-        FD_ZERO(&rdfs);
-        FD_SET( STDIN_FILENO, &rdfs);
-
-        return select(STDIN_FILENO + 1, &rdfs, NULL, NULL, &tv) == 1;
-        //return FD_ISSET(STDIN_FILENO, &rdfs);
-    #endif
-}
-
-unsigned int portability_sleep(unsigned int time)
-{
-    #ifdef _WIN32
-        Sleep(time);
-        return 0;
-    #else
-        return usleep(time * 1000);
-    #endif
-}
-
-void portability_gotoligcol(int poslig, int poscol)
-{
-    #ifdef _WIN32
-        COORD mycoord;
-        mycoord.X = poscol;
-        mycoord.Y = poslig;
-        SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), mycoord );
-    #else
-        printf("%c[%d;%df", 0x1B, poslig, poscol);
-    #endif
-}
+#ifdef _WIN32
+// http://msdn.microsoft.com/en-us/library/e0z9k731(v=vs.90).aspx
+# define strcasecmp(a, b) _stricmp(a, b)
+#endif
 
 #endif // PORTABILITY_H_INCLUDED
