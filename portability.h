@@ -26,8 +26,9 @@
 /*! Remarques pour les utilisateurs de ce fichier:
  *  0) Téléchargez ce fichier dans votre dossier de projet
  *	(https://github.com/iTeam-Projects/PortabilityCode/downloads)
- *  1) Ajoutez le fichier à votre projet Code::Blocks 
+ *  1) Ajoutez les fichiers à votre projet Code::Blocks 
  *	(Project> Add files...> portability.h)
+ *	(Project> Add files...> portability.c)
  *  2) Incluez le fichier dans votre code
  *	(Ecrire #include "portability.h" en haut de vos fichiers sources)
  *  3) Ça marche !
@@ -36,7 +37,7 @@
 /*! Remarques pour les développeurs de ce fichier:
  *  - Les valeurs de retour des fonctions sont conservés pour compatibilités
  *  - Les fonctions usuelles non-portable de Windows sont prises en référence
- *  - Toute nouvelle fonction doit être testé sous les 3 OS 
+ *  - Toute nouvelle fonction doit être testée sous les 3 OS 
  *  - Les résultats des tests doivent apparaître dans le wiki GitHub
  */
 
@@ -102,15 +103,19 @@ int portability_kbhit();
 
 /*! Pause le programme pendant un temps donné
  *  \param time Temps en millisecondes 
- *  \ret -1 si erreur, 0 sinon
  */
-unsigned int portability_sleep(unsigned int time);
+void portability_sleep(unsigned int time);
 
-/*! Change la couleur du texte ou du fond
+/*! Change la couleur de l'arrière plan
  * \param color la couleur
  */
-void portability_background_color(unsigned int color);
-void portability_text_color(unsigned int color);
+void portability_background_color_set(Color color);
+
+/**
+ * Change la couleur du text (foreground)
+ * @param color Couleur à appliquer
+ */
+void portability_text_color_set(Color color);
 
 /*! Déplace le curseur dans la console
  * À noter que le repère est de la forme:
@@ -130,13 +135,19 @@ void portability_text_color(unsigned int color);
 void portability_gotoligcol(int poslig, int poscol);
 
 
+/**
+ * Initialize the portability library
+ * - Disables the line bufferrng of defaults fds
+ */
+void portability_init(void);
+
 /*! Macros d'interceptions des appels de fonctions non-portables
  *  À noter que ces macros remplacent les appels non-portables AVANT la 
  *  compilation du code.
  */
 #define gotoligcol(x, y) portability_gotoligcol(x, y)
 #define kbhit() portability_kbhit()
-#define sleep(time) portability_sleep(time)
+#define Sleep(time) portability_sleep(time)
 #define system(arg) portability_system_call(arg)
 #define fflush(arg) portability_clear_buffer(arg)
 #ifdef _WIN32

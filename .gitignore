@@ -1,5 +1,5 @@
 .DS_Store
 *.o
+*.lo
 libportab_test
-*.swp
-*.swo
+*.sw?
