@@ -18,6 +18,7 @@ clean:
 	rm -f *.o
 	rm -f libportab_test
 	rm -Rf html
+	rm -f *.zip
 
 doc:
 	doxygen Doxyfile
