@@ -1,0 +1,6 @@
+.DS_Store
+*.o
+*.lo
+libportab_test
+*.sw?
+html/
