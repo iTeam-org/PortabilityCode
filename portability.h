@@ -37,17 +37,18 @@
  * de substituts à certaines fonctions qui sont spécifiques à Windows.
  * @section howto Comment utiliser ce code?
  *
- * 1) Télécharger les fichiers portability.c ET portability.h à l'adresse
- * https://github.com/iTeam-Projects/PortabilityCode/downloads
+ * 1) Télécharger les fichiers : http://iteam-projects.github.io/PortabilityCode/portability.zip
  *
- * 2) Ajouter les fichiers au projet. Pour Code::Blocks :
+ * 2) Décompressez l'archive téléchargée et placez les fichiers avec vos autres fichiers C.
+ *
+ * 3) Ajouter les fichiers au projet. Pour Code::Blocks :
  *
  * @verbatim
    Project > Add files... > portability.c
    Project > Add files... > portability.h
    @endverbatim
  *
- * 3) Pour chaue fichier .c, inclure portability.h
+ * 4) Pour chaue fichier .c, inclure portability.h
  *    @verbatim  #include "portability.h" @endverbatim
  * ATTENTION: IL DOIT ETRE INCLU EN DERNIER
  *
