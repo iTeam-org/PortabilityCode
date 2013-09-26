@@ -1,43 +1,66 @@
 /* ***************************************************************************
- *	Cette bibliothèque de fonction est distribué librement par l'iTeam !
+ *	Cette bibliothèque de fonctions est distribuée librement par l'iTeam !
  *
  *  Son but est de fournir un moyen simple pour compiler les codes enseignés
- *  à l'ECE (qui ne marche correctement que sous Windows).
- *  Nous vous invitons à l'utiliser et l'améliorer, la dernière version
+ *  à l'ECE (qui ne marchent correctement que sous Windows).
+ *  Nous vous invitons à l'utiliser et l'améliorer. La dernière version
  *  est disponible sur https://github.com/iTeam-Projects/PortabilityCode
  *
  *
  *			iTeam - association de Promotion du Logiciel Libre
  * ***************************************************************************
- *  Fonctions non-portable gérées :
+ *  Fonctions non-portables gérées :
  *	system("PAUSE");
  *	system("CLS");
  *	fflush(stdin);
  *	kbhit();
  *	sleep();
- *  Fonctions non-portable en attente :
- *	getch();
  *	fonction couleurs dans la console
+ *  Fonctions non-portables en attente :
+ *	getch();
  */
 
 #ifndef PORTABILITY_H_INCLUDED
 #define PORTABILITY_H_INCLUDED
 
-/*! Remarques pour les utilisateurs de ce fichier:
- *  0) Téléchargez ce fichier dans votre dossier de projet
- *	(https://github.com/iTeam-Projects/PortabilityCode/downloads)
- *  1) Ajoutez les fichiers à votre projet Code::Blocks 
- *	(Project> Add files...> portability.h)
- *	(Project> Add files...> portability.c)
- *  2) Incluez le fichier dans votre code
- *	(Ecrire #include "portability.h" en haut de vos fichiers sources)
- *  3) Ça marche !
+
+/**
+ * @file portability.h
+ * @brief Fonctions portables à destination des ING1 de l'ECE. Il s'agit
+ * de substituts à certaines fonctions qui sont spécifiques à Windows.
+ * @author iTeam
+ * @version 1.1
+ * @date 2013-09-26
+ *
+ * @mainpage
+ * Fonctions portables à destination des ING1 de l'ECE. Il s'agit
+ * de substituts à certaines fonctions qui sont spécifiques à Windows.
+ * @section howto Comment utiliser ce code?
+ *
+ * 1) Télécharger les fichiers portability.c ET portability.h à l'adresse
+ * https://github.com/iTeam-Projects/PortabilityCode/downloads
+ *
+ * 2) Ajouter les fichiers au projet. Pour Code::Blocks :
+ *
+ * @verbatim
+   Project > Add files... > portability.c
+   Project > Add files... > portability.h
+   @endverbatim
+ *
+ * 3) Pour chaue fichier .c, inclure portability.h
+ *    @verbatim  #include "portability.h" @endverbatim
+ * ATTENTION: IL DOIT ETRE INCLU EN DERNIER
+ *
+ * @defgroup portability
+ * @brief Fonctions compatibles
+ * @{
  */
 
-/*! Remarques pour les développeurs de ce fichier:
+
+/* Remarques pour les développeurs de ce fichier:
  *  - Les valeurs de retour des fonctions sont conservés pour compatibilités
  *  - Les fonctions usuelles non-portable de Windows sont prises en référence
- *  - Toute nouvelle fonction doit être testée sous les 3 OS 
+ *  - Toute nouvelle fonction doit être testée sous les 3 OS
  *  - Les résultats des tests doivent apparaître dans le wiki GitHub
  */
 
@@ -47,7 +70,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#define  _XOPEN_SOURCE_EXTENDED 1
+//#define _XOPEN_SOURCE_EXTENDED 1
+
 #include <strings.h>
 
 #ifdef _WIN32	// Si l'on est sous Windows
@@ -60,79 +84,36 @@
     #include <sys/time.h>
 #endif
 
-// Couleurs
+/**
+ * @enum Color Colors that are available in the terminal. They can be used
+ * to change the background and the text colors.
+ */
 typedef enum
 {
-   COLOR_DEFAULT = 0,
-   COLOR_BLACK   = 30,
-   COLOR_RED     = 31,
-   COLOR_GREEN   = 32,
-   COLOR_YELLOW  = 33,
-   COLOR_BLUE    = 34,
-   COLOR_MAGENTA = 35,
-   COLOR_CYAN    = 36,
-   COLOR_GRAY    = 37
+   COLOR_DEFAULT = 0,  /**< Couleur par défaut */
+   COLOR_BLACK   = 30, /**< Couleur noire */
+   COLOR_RED     = 31, /**< Couleur rouge */
+   COLOR_GREEN   = 32, /**< Couleur verte */
+   COLOR_YELLOW  = 33, /**< Couleur jaune */
+   COLOR_BLUE    = 34, /**< Couleur bleue */
+   COLOR_MAGENTA = 35, /**< Couleur magenta */
+   COLOR_CYAN    = 36, /**< Couleur cyan */
+   COLOR_GRAY    = 37  /**< Couleur grise */
 } Color;
 
 
-// Prototypes des fonctions portables
 
-/*! Remplace les appels systèmes windows courants par leurs correspondances
- *  \param  cmd Chaîne de caractère correspondant à la commande système
- *  \return -1 en cas d'erreur, 0 si cmd est NULL et > 0 sinon
- */
-int portability_system_call(const char* cmd);
-
-/*! Efface le buffer d'entrée
- *  \param  f Pointeur sur un descripteur FILE (notamment stdin)
- */
-void portability_clear_buffer( FILE* f);
-
-/*! Change le mode de fonctionnement du terminal (utile pour kbhit)
- *  \param dir Correspond à On/Off (1/0) pour le mode du terminal
- *  UNIQUEMENT SOUS LINUX
- */
-#ifndef _WIN32
-void portability_change_terminal_mode( int dir);
-#endif
-
-/*! Détecte qu'une touche a été tapée dans le terminal
- *  \ret 0 si aucune touche frappée, > 0 sinon
- */
-int portability_kbhit();
-
-/*! Pause le programme pendant un temps donné
- *  \param time Temps en millisecondes 
- */
-void portability_sleep(unsigned int time);
-
-/*! Change la couleur de l'arrière plan
- * \param color la couleur
+/**
+ * Change la couleur de l'arrière plan
+ * @param color Couleur à appliquer
  */
 void portability_background_color_set(Color color);
 
 /**
- * Change la couleur du text (foreground)
+ * Change la couleur du texte
  * @param color Couleur à appliquer
  */
 void portability_text_color_set(Color color);
-
-/*! Déplace le curseur dans la console
- * À noter que le repère est de la forme:
- *  ------------->
- * |(0,0)          X (poscol)
- * |
- * |
- * |
- * v 
- *   Y (poslig)
- * 
- * IMPORTANT: On fait donc un appel avec des coordonnées (Y, X) et non (X, Y)
- *
- *  \param  poslig Correspond au numéro de ligne
- *  \param  poscol Correspond au numéro de colonne
- */
-void portability_gotoligcol(int poslig, int poscol);
 
 
 /**
@@ -141,18 +122,167 @@ void portability_gotoligcol(int poslig, int poscol);
  */
 void portability_init(void);
 
-/*! Macros d'interceptions des appels de fonctions non-portables
- *  À noter que ces macros remplacent les appels non-portables AVANT la 
- *  compilation du code.
+/**
+ * Shuts down the portability resources.
  */
-#define gotoligcol(x, y) portability_gotoligcol(x, y)
-#define kbhit() portability_kbhit()
-#define Sleep(time) portability_sleep(time)
-#define system(arg) portability_system_call(arg)
-#define fflush(arg) portability_clear_buffer(arg)
-#ifdef _WIN32
-// http://msdn.microsoft.com/en-us/library/e0z9k731(v=vs.90).aspx
-# define strcasecmp(a, b) _stricmp(a, b)
+void portability_shutdown(void);
+
+
+/* Remove existing aliases */
+#ifdef gotoligcol
+# undef gotoligcol
+#endif
+#ifdef kbhit
+# undef kbhit
+#endif
+#ifdef Sleep
+# undef Sleep
+#endif
+#ifdef system
+# undef system
+#endif
+#ifdef fflush
+# undef fflush
 #endif
 
+/**
+ * @def gotoligcol(x, y)
+ * Déplace le curseur dans la console
+ * À noter que le repère est de la forme:
+ *  ------------->
+ * |(0,0)          X (poscol)
+ * |
+ * |
+ * |
+ * v
+ *   Y (poslig)
+ *
+ * IMPORTANT: On fait donc un appel avec des coordonnées (Y, X) et non (X, Y)
+ *
+ * @verbatim
+   // Put the cursor at line 0, column 0:
+   gotoligcol(0, 0);
+   @endverbatim
+ *
+ * @param x Correspond à l'index de ligne
+ * @param y Correspond à l'index de colonne
+ */
+#define gotoligcol(x, y) portability_gotoligcol(x, y)
+
+/**
+ * @def kbhit()
+ * Détecte qu'une touche a été tapée dans le terminal
+ *
+ * @verbatim
+   // Waits for a key input
+   kbhit();
+   @endverbatim
+ * @return 0 si aucune touche frappée, > 0 sinon
+ */
+#define kbhit() portability_kbhit()
+
+/**
+ * Pause le programme pendant un temps donné
+ * @verbatim
+   // Waits for two seconds (2000 milliseconds)
+   Sleep(2000);
+   @endverbatim
+ * @param time Temps en millisecondes
+ */
+#define Sleep(time) portability_sleep(time)
+
+/**
+ * @def system(arg)
+ *
+ * Remplace les appels systèmes Windows courants par leurs correspondances
+ *
+ * Example:
+ * @verbatim
+   // Clear the console
+   system("cls");
+
+   // Pause the console
+   system("pause");
+   @endverbatim
+ * @param cmd Chaîne de caractère correspondant à la commande système
+ * @return 0 si la commande a bien été exécutée, -1 si @e cmd est NULL,
+ * > 0 si une erreur interne est survenue.
+ */
+#define system(arg) portability_system_call(arg)
+
+/**
+ * @def fflush(arg)
+ *
+ * Efface le buffer d'entrée
+ * @verbatim
+   // Nettoyer l'entrée clavier:
+   fflush(stdin);
+   @endverbatim
+ * @param f Pointeur sur un descripteur FILE
+ */
+#define fflush(arg) portability_clear_buffer(arg)
+
+// http://msdn.microsoft.com/en-us/library/e0z9k731(v=vs.90).aspx
+/**
+ * @def strcasecmp(str1, str2)
+ *
+ * Compare deux chaînes de caractère sans tenir compte de la casse
+ *
+ * @verbatim
+   strcasecmp("A string", "a StRinG"); // Identical strings
+   strcasecmp("A string", "Q string"); // Different strings
+   strcasecmp("A string", "A string"); // Identical strings
+   @endverbatim
+ *
+ * @param str1 Une chaîne de caractères
+ * @param str2 Une autre chaîne de caractères
+ *
+ * @return 0 if the strings are identical
+ */
+#define strcasecmp(str1, str2) _stricmp(str1, str2)
+
+#ifndef _WIN32
+# undef strcasecmp
+#endif
+
+#ifdef ERROR
+# undef ERROR
+#endif
+
+/**
+ * @def ERROR(message, ...)
+ * Affiche une message d'erreur dans la console qui indique le nom de la
+ * fonction ainsi que la ligne à laquelle ce message a été appelé.
+ *
+ * @verbatim
+   void
+   my_gorgeous_function(void)
+   {
+      int i = 4;
+      ERROR("Here, the value of i is %i. This is not normal!", i);
+      // Displays:
+      // *** [my_gorgeous_function:5] Here, the value of i is 4. This is not normal!
+   }
+   @endverbatim
+ *
+ * @param message Format du message (comme printf)
+ * @param ... Arguments du message (comme printf)
+ */
+#define ERROR(message, ...) \
+   fprintf(stderr, "*** [%s:%i] "msg"\n", __func__, __LINE__, ## __VA_ARGS__)
+
+/** @} */
+
+/* Compatibility functions */
+void portability_gotoligcol(int poslig, int poscol);
+int portability_kbhit(void);
+void portability_clear_buffer(FILE *f);
+void portability_sleep(unsigned int time);
+int portability_system_call(const char *cmd);
+
 #endif // PORTABILITY_H_INCLUDED
+
+/**
+ * @example base.c
+ * @example test.c
+ */

@@ -67,14 +67,32 @@ _color_test(void)
    printf("===================================\n\n");
 }
 
+static void
+_no_init_test(void)
+{
+   portability_gotoligcol(1, 1);
+}
+
 int
 main(int argc, char **argv)
 {
+   /* Check that portability_init() is required */
+   _no_init_test();
+
+   /* Init portability */
    portability_init();
 
+   /* Test system() */
    _system_call_test(argc >= 2 ? argv[1] : NULL);
+
+   /* Test printf() */
    _printf_test();
+
+   /* Test colors */
    _color_test();
+
+   /* Shut down portability */
+   portability_shutdown();
 
    return 0;
 }

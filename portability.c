@@ -1,151 +1,69 @@
+/* ***************************************************************************
+ *	Cette bibliothèque de fonctions est distribuée librement par l'iTeam !
+ *
+ *  Son but est de fournir un moyen simple pour compiler les codes enseignés
+ *  à l'ECE (qui ne marchent correctement que sous Windows).
+ *  Nous vous invitons à l'utiliser et l'améliorer. La dernière version
+ *  est disponible sur https://github.com/iTeam-Projects/PortabilityCode
+ *
+ *
+ *			iTeam - association de Promotion du Logiciel Libre
+ * ***************************************************************************/
+
 #include "portability.h"
 
 /* Since this is the implementation of wrappers, we must disable the 'aliases'
  * absolutely. Else, we will call them recursively */
 #undef gotoligcol
 #undef kbhit
-#undef sleep
+#undef Sleep
 #undef system
 #undef fflush
 
 static unsigned int _portability_color_bg = COLOR_DEFAULT;
 static unsigned int _portability_color_fg = COLOR_DEFAULT;
+static unsigned char _init = 0;
 
-void
-portability_init(void)
-{
-   /* Disable line buferring of provided file descriptors */
-   FILE *files[] = {
-      stderr,
-      stdout,
-      NULL // Sentinel - DO NOT REMOVE!
-   }, *f, **fi = files;
-
-   /* Okay, there is easier, but it's way cooler this way! */
-   while ((f = *(fi++)))
-     setbuf(f, NULL);
-}
-
-int
-portability_system_call(const char *cmd)
-{
-   int ret = -1;
-
-   if (!cmd) return -1;
-
-   if (strcasecmp(cmd, "pause") == 0)
-     {
-        printf("Press any key to continue...");
-        ret = getchar();
-     }
-   else if ((strcasecmp(cmd, "CLS") == 0) ||
-            (strcmp(cmd, "clear") == 0))
-     {
-#ifdef _WIN32
-        ret = system("CLS");
-#else
-        ret = system("clear");
+#ifdef ERR
+# undef ERR
 #endif
-     }
-   else
-     {
-        ret = system(cmd);
-     }
+#define ERR(msg, ...) do { \
+     fprintf(stderr, "*** Error in function %s: " msg "\n", \
+             __func__, ## __VA_ARGS__); \
+     fprintf(stderr, \
+             "*** NAUGHTY PROGRAMMER!!!\n" \
+             "*** SPANK SPANK SPANK!!!\n" \
+             "*** Now go fix your code. Tut tut tut!\n\n"); } while (0)
 
-   return ret;
-}
+/*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=*
+ *                                 Private API                                *
+ *=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~*/
 
-void
-portability_clear_buffer(FILE* f)
-{
-    char c;
-
-    // Si on veut vider le buffer d'entrée
-    if (f == stdin)
-    {
-	// Boucle vidant le buffer caractère par caractère
-        while( (c=getchar()) != '\n' && c != EOF) ;
-    }
-    else    // Si on veut vraiment flush un flux de sortie
-    {
-        fflush(f);
-    }
-}
-
-
-/* I would advsise to put this as a static private function since
- * no one is going to use this, I guess */
-void portability_change_terminal_mode(int dir)
+static void
+_portability_change_terminal_mode(int dir)
 {
 #ifndef _WIN32
-    static struct termios old_term, new_term;
+   static struct termios old_term, new_term;
 
-    if (dir == 1)
-    {
+   if (dir == 1)
+     {
         tcgetattr( STDIN_FILENO, &old_term);
         new_term = old_term;
         new_term.c_lflag &= ~( ICANON | ECHO );
         tcsetattr( STDIN_FILENO, TCSANOW, &new_term );
-    }
-    else
-    {
+     }
+   else
+     {
         tcsetattr( STDIN_FILENO, TCSANOW, &old_term);
-    }
+     }
 #else
-    (void) dir; // To avoid warning with -Wunused-parameter
+   (void) dir; // To avoid warning with -Wunused-parameter
 #endif
 }
-
-
-int
-portability_kbhit(void)
-{
-   int val;
-#ifdef _WIN32
-   val = kbhit();
-#else
-   portability_change_terminal_mode(1);
-   struct timeval tv = {0, 0};
-   fd_set rdfs;
-
-   FD_ZERO(&rdfs);
-   FD_SET( STDIN_FILENO, &rdfs);
-
-   val = select(STDIN_FILENO + 1, &rdfs, NULL, NULL, &tv) == 1;
-   //return FD_ISSET(STDIN_FILENO, &rdfs);
-#endif
-
-   return val;
-}
-
-void
-portability_sleep(unsigned int time)
-{
-#ifdef _WIN32
-   Sleep(time);
-#else
-   usleep(time * 1000.0);
-#endif
-}
-
-void portability_gotoligcol(int poslig, int poscol)
-{
-    #ifdef _WIN32
-        COORD mycoord;
-        mycoord.X = poscol;
-        mycoord.Y = poslig;
-        SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), mycoord );
-    #else
-        printf("%c[%d;%df", 0x1B, poslig, poscol); // How about line buferring here?!
-        // -> use portability_init() which disables line buffering of common fds
-    #endif
-}
-
 
 static void
-_portability_color_apply()
+_portability_color_apply(void)
 {
-
 #ifdef _WIN32
    HANDLE console;
    unsigned int color;
@@ -190,17 +108,149 @@ _portability_color_apply()
 #endif
 }
 
+
+/*~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=*
+ *                                 Public API                                 *
+ *=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~*/
+
+void
+portability_init(void)
+{
+   /* Disable line buffering */
+   setbuf(stdout, NULL);
+   setbuf(stderr, NULL);
+
+   /* Lib has been initiated */
+   _init = 1;
+}
+
+void
+portability_shutdown(void)
+{
+   /* Nothing to implement here for now */
+}
+
+
+int
+portability_system_call(const char *cmd)
+{
+   int ret = -1;
+
+   if (!cmd) return -1;
+
+   if (strcasecmp(cmd, "pause") == 0)
+     {
+        printf("Press any key to continue...");
+        ret = getchar();
+     }
+   else if ((strcasecmp(cmd, "CLS") == 0) ||
+            (strcmp(cmd, "clear") == 0))
+     {
+#ifdef _WIN32
+        ret = system("CLS");
+#else
+        ret = system("clear");
+#endif
+     }
+   else
+     {
+        ret = system(cmd);
+     }
+
+   return ret;
+}
+
+void
+portability_clear_buffer(FILE *f)
+{
+   char c;
+
+   // Si on veut vider le buffer d'entrée
+   if (f == stdin)
+     {
+        // Boucle vidant le buffer caractère par caractère
+        while( (c=getchar()) != '\n' && c != EOF) ;
+     }
+   else    // Si on veut vraiment flush un flux de sortie
+     {
+        fflush(f);
+     }
+}
+
+int
+portability_kbhit(void)
+{
+   int val;
+#ifdef _WIN32
+   val = kbhit();
+#else
+   _portability_change_terminal_mode(1);
+   struct timeval tv = {0, 0};
+   fd_set rdfs;
+
+   FD_ZERO(&rdfs);
+   FD_SET( STDIN_FILENO, &rdfs);
+
+   val = select(STDIN_FILENO + 1, &rdfs, NULL, NULL, &tv) == 1;
+   //return FD_ISSET(STDIN_FILENO, &rdfs);
+#endif
+
+   return val;
+}
+
+void
+portability_sleep(unsigned int time)
+{
+#ifdef _WIN32
+   Sleep(time);
+#else
+   (void) usleep(time * 1000.0);
+#endif
+}
+
+void
+portability_gotoligcol(int poslig, int poscol)
+{
+   if (!_init)
+     {
+        ERR("You didn't initialize portability with portability_init()\n"
+            "*** You MUST use portability_init() before using this function!");
+        return;
+     }
+
+#ifdef _WIN32
+   COORD mycoord;
+   mycoord.X = poscol;
+   mycoord.Y = poslig;
+   SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), mycoord );
+#else
+   printf("%c[%d;%df", 0x1B, poslig, poscol);
+#endif
+}
+
 void
 portability_background_color_set(Color color)
 {
-   _portability_color_bg = color ;
+   if (!_init)
+     {
+        ERR("You didn't initialize portability with portability_init()\n"
+            "*** You MUST use portability_init() before using this function!");
+        return;
+     }
+   _portability_color_bg = color;
    _portability_color_apply();
 }
 
 void
 portability_text_color_set(Color color)
 {
-   _portability_color_fg = color ;
+   if (!_init)
+     {
+        ERR("You didn't initialize portability with portability_init()\n"
+            "*** You MUST use portability_init() before using this function!");
+        return;
+     }
+   _portability_color_fg = color;
    _portability_color_apply();
 }
 
