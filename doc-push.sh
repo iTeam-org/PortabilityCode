@@ -9,12 +9,12 @@ make doc
 zip -r ${p}.zip ${p}.c ${p}.h
 mv ${p}.zip /tmp/${p}.zip
 
-cp -R html $tmp
+mv html $tmp
 
 git checkout gh-pages
 
 rm -Rf doc
-cp -R $tmp doc
+mv $tmp doc
 mv /tmp/${p}.zip .
 touch .nojekyll
 
