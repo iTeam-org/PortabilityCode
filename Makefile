@@ -6,7 +6,7 @@ else
 endif
 CFLAGS=-I.
 DEPS=portability.h
-OBJ=main.o portability.o
+OBJ=test.o portability.o
 
 %.o: %.c $(DEPS)
 	$(CC) -g -c -o $@ $< $(CFLAGS)
@@ -15,6 +15,9 @@ libportab_test: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 clean:
-	@rm -vf *.o
-	@rm -vf libportab_test
+	rm -f *.o
+	rm -f libportab_test
+	rm -Rf html
 
+doc:
+	doxygen Doxyfile
