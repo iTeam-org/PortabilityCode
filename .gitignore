@@ -3,3 +3,4 @@
 *.lo
 libportab_test
 *.sw?
+*.zip
