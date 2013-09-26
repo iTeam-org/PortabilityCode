@@ -3,6 +3,15 @@
 tmp="/tmp/tmp2LqYfht9Ee"
 p=portability
 
+clean() {
+   rm -Rf ${tmp}
+}
+
+trap clean EXIT
+
+clean
+
+
 make clean
 make doc
 
@@ -23,6 +32,8 @@ git commit -am "Automatic documentation upload"
 git push origin gh-pages
 
 git checkout master
+
+clean
 
 exit 0
 
