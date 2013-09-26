@@ -15,7 +15,7 @@ git checkout gh-pages
 
 rm -Rf doc
 cp -R $tmp doc
-mv /tmp/${p}.zip 
+mv /tmp/${p}.zip .
 touch .nojekyll
 
 git add .
