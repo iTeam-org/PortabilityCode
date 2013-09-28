@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['code_3a_3ablocks',['Code::Blocks',['../codeblocks.html',1,'']]],
   ['color',['Color',['../group__portability.html#gab87bacfdad76e61b9412d7124be44c1c',1,'portability.h']]],
   ['color_5fblack',['COLOR_BLACK',['../group__portability.html#ggab87bacfdad76e61b9412d7124be44c1ca2a9daf215a30f1c539ead18c66380fc1',1,'portability.h']]],
   ['color_5fblue',['COLOR_BLUE',['../group__portability.html#ggab87bacfdad76e61b9412d7124be44c1ca1340428efccb140dcbdb71aa6176f696',1,'portability.h']]],
