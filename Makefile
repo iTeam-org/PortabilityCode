@@ -20,5 +20,5 @@ clean:
 	rm -Rf html
 	rm -f *.zip
 
-doc:
-	doxygen Doxyfile
+docu:
+	doxygen ./doc/Doxyfile
