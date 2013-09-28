@@ -13,7 +13,7 @@ clean
 
 
 make clean
-make doc
+make docu
 
 zip -r ${p}.zip ${p}.c ${p}.h
 mv ${p}.zip /tmp/${p}.zip
