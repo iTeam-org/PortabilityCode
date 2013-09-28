@@ -5,7 +5,7 @@ Fonctions portables à destination des ING1 de l'ECE.
 
 # TODO
 
-- [ ] Se mettre au boulot !
+- [ ] Trouver une license adéquate !
 
 
 # Done
