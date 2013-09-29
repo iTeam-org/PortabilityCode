@@ -80,10 +80,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
-//#define _XOPEN_SOURCE_EXTENDED 1
-
 #include <strings.h>
+#include <errno.h>
 
 #ifdef _WIN32	// Si l'on est sous Windows
     #include <conio.h>
