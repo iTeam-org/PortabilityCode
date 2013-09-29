@@ -116,12 +116,18 @@ _portability_color_apply(void)
 void
 portability_init(void)
 {
-   /* Disable line buffering */
-   setbuf(stdout, NULL);
-   setbuf(stderr, NULL);
+   int chk;
 
-   /* Lib has been initiated */
-   _init = 1;
+   /* Disable line buffering - setbuf is deprecated and its usage must be
+    * avoided as much as possible (cf. man 3 - BSD) */
+   chk = setvbuf(stdout, NULL, _IONBF, 0);
+   chk *= setvbuf(stderr, NULL, _IONBF, 0);
+
+   /* Lib has been properly initiated (or not) */
+   if (chk == 0)
+     _init = 1;
+   else
+     fprintf(stderr, "*** Error in %s: %s\n", __func__, strerror(errno));
 }
 
 void
